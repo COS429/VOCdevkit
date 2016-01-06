@@ -114,6 +114,7 @@ for i=1:length(gtids)
     
     % Append data to full tensors
     data(:,:,:,count) = img;
+    count = count + 1;
     bb = [bb; boxes];
     labels = [labels; box_labels];
 end
