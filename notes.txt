@@ -1,0 +1,7 @@
+- Network in fast r-cnn has two inputs: images plus list of ROIs in images
+- Imagenet's 1000 classes do not overlap well with Pascal's
+
+- Ming's x and y are mixed up
+
+- Yinda - students may simply wish to crop in matlab
+- kmeans to find typical regions
