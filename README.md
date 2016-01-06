@@ -3,7 +3,7 @@
 bb_prepare.m prepares PASCAL data for subsequent use by Marvin via the following steps:
 
 1. Loads all Pascal images
-   - These are saved under /data/cos429/VOCdevkit/ on visiongpu
+- These are saved under /data/cos429/VOCdevkit/ on visiongpu
    
 2. Runs Selective Search on each image 
    - This returns a set of candidate bounding boxes for each image (as in Fast R-CNN)
