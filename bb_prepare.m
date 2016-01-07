@@ -127,7 +127,7 @@ end
 
 
 %% Save tensors
-saveDir = '/data/aseff/pascal';
+saveDir = insert save location here;
 if(train)
     pref = 'train';
 else
