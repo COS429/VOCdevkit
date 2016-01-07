@@ -63,9 +63,10 @@ labels = []; % Not pre-allocated (no longer 4-dimensional) (B x 1)
 
 tic;
 count = 1;
-for i=1:length(gtids)
+limit = 500;
+for i=1:limit %length(gtids)
     % display progress
-   if toc>1
+    if toc>1
         fprintf('load image: %d/%d\n',i,length(gtids));
         drawnow;
         tic;
@@ -107,10 +108,14 @@ for i=1:length(gtids)
     img = padarray(img, [227-Y, 227-X], 'post');
     
     % Scale bounding boxes accordingly and round
-    boxes = round(boxes .* repmat([x_scale, y_scale, x_scale, y_scale], size(boxes,1), 1));
-    
+    boxes = boxes .* repmat([x_scale, y_scale, x_scale, y_scale], size(boxes,1), 1);
+    boxes = boxes - 1; % for zero-indexing
+    boxes = round(boxes);
+    inds = find(boxes < 0);
+    boxes(inds) = 0;
+  
     % Add global image id to bounding boxes
-    boxes = [i*ones(size(boxes,1),1), boxes];
+    boxes = [(count-1)*ones(size(boxes,1),1), boxes];
     
     % Append data to full tensors
     data(:,:,:,count) = img;
@@ -133,7 +138,7 @@ end
 tensor.type = 'half';
 tensor.sizeof = 2;
 tensor.name = [pref '_images'];
-tensor.value = single(data);
+tensor.value = single(data(:,:,:,1:count-1));
 tensor.dim = 4;
 writeTensors(sprintf('%s/%s.tensor', saveDir, tensor.name), tensor);
 
@@ -142,7 +147,7 @@ if(train)
     tensor.type = 'half';
     tensor.sizeof = 2;
     tensor.name = 'train_mean';
-    tensor.value = single(mean(data, 4));
+    tensor.value = single(mean(data(:,:,:,1:count-1), 4));
     tensor.dim = 3;
     writeTensors(sprintf('%s/%s.tensor', saveDir, tensor.name), tensor);
 end
@@ -150,17 +155,23 @@ end
 % Save bounding boxes
 % Modify to match ROIPooling expected input
 bb = bb(:, [1 3 5 2 4]); % Now [ymin, ymax, xmin, xmax]
+newBBs = zeros(1,1,5,size(bb,1));
+newBBs(1,1,:,:) = bb';
+bb = newBBs;
 tensor.type = 'half';
 tensor.sizeof = 2;
 tensor.name = [pref '_bboxes'];
 tensor.value = single(bb);
-tensor.dim = 2;
+tensor.dim = 4;
 writeTensors(sprintf('%s/%s.tensor', saveDir, tensor.name), tensor);
 
 % Save bounding box labels
+newLabels = zeros(1,1,1,size(labels,1));
+newLabels(1,1,1,:) = labels;
+labels = newLabels;
 tensor.type = 'half';
 tensor.sizeof = 2;
 tensor.name = [pref '_labels'];
 tensor.value = single(labels);
-tensor.dim = 1;
+tensor.dim = 4;
 writeTensors(sprintf('%s/%s.tensor', saveDir, tensor.name), tensor);
